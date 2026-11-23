@@ -1,0 +1,30 @@
+---
+name: deploy-check
+description: Run read-only pre-deployment validation in a forked sub-agent and report a single pass/fail summary back to the main session
+context: fork
+argument-hint: "[target-branch] (defaults to main)"
+allowed-tools:
+  - Read
+  - Grep
+  - Glob
+  - Bash(git status:*)
+  - Bash(git diff:*)
+  - Bash(git log:*)
+  - Bash(git rev-parse:*)
+  - Bash(git ls-files:*)
+  - Bash(gh pr view:*)
+  - Bash(gh pr checks:*)
+---
+
+# /deploy-check
+
+Runs the team's pre-deployment validation checklist against the current working tree and the branch you're about to ship. Read-only by design — this skill never modifies files, never pushes, never deploys. It returns a single structured summary so the calling session can decide whether to proceed.
+
+## Why this is a skill (not a CLAUDE.md addition)
+
+`/deploy-check` is **on-demand and task-specific**: you only need it right before a deploy, and it produces verbose intermediate output (file enumeration, diff parsing, check execution traces) that has no value once the summary is known. That makes it a good fit for a skill — invoked when needed, running in a forked context.
+
+The opposite shape — always-loaded, universal guidance like "tests are co-located with source" or "throw `ApiError` for validation failures" — belongs in `CLAUDE.md` or `.claude/standards/`. Those need to be present in every session, not gated behind an invocation. Rule of thumb: **on-demand, forked, task-specific → skill; always-loaded, universal → CLAUDE.md**.
+
+## Why `context: fork`
+
